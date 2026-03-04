@@ -1,0 +1,34 @@
+import {
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+
+import { IS_ADMIN_KEY } from '../decorators/admin.decorator';
+import type { User } from 'interfaces/user.interface';
+
+@Injectable()
+export class AdminGuard implements CanActivate {
+  constructor(private readonly reflector: Reflector) {}
+
+  canActivate(context: ExecutionContext): boolean {
+    const requiresAdmin = this.reflector.getAllAndOverride<boolean>(
+      IS_ADMIN_KEY,
+      [context.getHandler(), context.getClass()],
+    );
+
+    if (!requiresAdmin) return true; // route sans @AdminOnly() → laissée passer
+
+    const request = context.switchToHttp().getRequest<Request>();
+    const user = (request as any).user as User; // garanti non-null par ApiKeyGuard
+
+    if (user.role !== 'admin') {
+      throw new ForbiddenException(
+        'This action requires administrator privileges.',
+      ); // → 403
+    }
+    return true;
+  }
+}

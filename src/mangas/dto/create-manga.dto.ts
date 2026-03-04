@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
   IsNotEmpty,
@@ -17,6 +18,7 @@ export enum MangaStatus {
 }
 
 export class CreateMangaDto {
+  @ApiProperty({ example: 'Berserk', maxLength: 200 })
   @IsString()
   @IsNotEmpty()
   @MaxLength(200)
@@ -32,6 +34,7 @@ export class CreateMangaDto {
   @IsString({ each: true })
   genres: string[];
 
+  @ApiProperty({ enum: MangaStatus, example: MangaStatus.ONGOING })
   @IsEnum(MangaStatus, {
     message: 'status must be one of: ongoing, completed, hiatus',
   })
